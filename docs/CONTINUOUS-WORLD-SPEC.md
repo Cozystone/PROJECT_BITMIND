@@ -1,107 +1,94 @@
-# The minimal continuous world ("Patchland", v0 specification)
+# Continuous worlds (revised 2026-10-12)
 
-A small, transparent world. Every rule is listed here, and every one is in the world crate.
-None is in the agent.
+The earlier 16 × 16 "Patchland" with bushes, fruit and brambles is **demoted**: it is one
+possible later environment, not the agent's purpose and not the only form a world may take.
+It carried task-like meanings (food, hazard, shelter). The first experiment uses the smaller
+world below, which has temporal structure and an action interface but no built-in meanings.
 
-## 1. Time
+## 1. Requirements for any world in this project
 
-* One world clock in integer **ticks**. It never resets during a life.
-* The simulation is a discrete-event scheduler; a tick is a computational unit, not a unit of
-  the agent's life. Actions have durations in ticks. The agent decides again when its current
-  action completes or is interrupted (by damage, or by collapse).
-* Observations are delivered as events whenever something enters the agent's senses or a sensor
-  is read. Interoceptive readings (energy, damage) are delivered every `T_INTERO = 50` ticks and
-  at every action completion.
-* There is no episode, no "end of task", and no reset. Checkpoints exist only for analysis and
-  replay (`OBSERVABILITY.md`) and never feed back into the main life.
+* One clock that never resets; observations arrive as events; actions take time and consume
+  the body's resource.
+* Temporal regularities exist in the sensory stream (so there is something to learn).
+* A small action interface can influence future events (so action matters).
+* **No meanings are given to the agent:** nothing in the agent says "this token is food",
+  "this action restores", "this place is safe". If such regularities exist in the world, the
+  agent can only find them through its own predictions.
+* World truth (hidden generators, rule-change times) is visible to the analyzer only.
 
-## 2. External state (world-owned; visible to the analyzer only)
+## 2. Ring world (first experiment)
 
-| element | definition |
-|---|---|
-| grid | 16 x 16 cells, bounded. Terrain per cell: `ground`, `bramble`, `shelter` |
-| bushes | 12 bushes at cells. Each has a hidden **kind** (`sweet`, `bitter`, `nettle`), a visible **colour** (4 values), a fruit count (0-3) |
-| fruit regrowth | each bush regrows one fruit with a probability per tick that depends on season (below) |
-| weather | hidden `dry`/`wet`, a two-state Markov chain (mean dwell 2,000 ticks) |
-| day/night | a cycle of 4,000 ticks (2,000 day, 2,000 night) |
-| season | slow sinusoid of the regrowth rate, period 40,000 ticks |
-| regime | the colour → kind assignment and the bramble layout. Regime changes are **rare and unannounced** (section 6) |
+**Space.** A ring of K = 8 sites. The agent occupies one site.
 
-**Causal rules (fixed within a regime):**
-* Shaking a `sweet` bush with fruit drops a fruit (eating: +900 energy).
-* Shaking a `bitter` bush with fruit drops a fruit (eating: +250 energy, +150 damage).
-* Shaking a `nettle` bush: +400 damage dry, +900 damage wet, and drops fruit (+400 energy) only
-  half the time.
-* Entering a `bramble` cell: +200 damage dry, +500 damage wet.
-* Resting in `shelter`: damage recovers 6 per tick (else 1 per tick); weather has no effect
-  there.
-* Within a regime, colour predicts kind statistically: each colour maps to a dominant kind for
-  75% of its bushes. The rest are exceptions, so colour is informative but not certain.
+**Emitters.** Each site has an emitter that produces tokens from an alphabet of 6 symbols.
+Tokens are events, not a per-tick vector: each emitter has its own inter-event interval
+(drawn from a site-specific distribution, mean 8-40 ticks, drawn per seed). The next token
+depends on the previous two tokens of that site (a second-order Markov grammar, per site) and,
+for 2 of the 8 sites, on the current token of a neighbour (a cross-site relation).
 
-## 3. The agent's body (world-owned physics, read by the agent only through interoception)
+**Hidden slow variable.** A two-state hidden "mode" (mean dwell 3,000 ticks) that changes the
+grammar of 3 sites. It is not observed; only its effects on tokens are.
 
-| variable | range | dynamics |
+**Rare unannounced structural change.** At pre-drawn times (one per 150,000-250,000 ticks),
+the grammar of 2 sites is re-drawn and one cross-site relation is moved.
+
+**Perturbation by action.** `touch` at the current site resets that emitter's phase and,
+for 100 ticks, forces its grammar to a fixed short cycle (so acting creates a predictable
+consequence to learn).
+
+## 3. Observations (what the agent receives)
+
+Events `{tick, channel, value}`:
+
+| channel | value | imperfection |
 |---|---|---|
-| energy E | 0-10,000 | -1 per tick; plus action costs (section 5); plus food |
-| damage D | 0-10,000 | plus hazards; minus recovery per tick (above) |
-| collapse | event | if E = 0 or D = 10,000: the body is incapacitated for 5,000 ticks (no actions; energy set to 2,000, damage to 7,000). Life continues; each collapse is recorded as a viability failure |
+| token here | the symbol emitted at the current site | 4% read as a random other symbol |
+| token nearby | symbols emitted at the two neighbouring sites, 1 tick late | 8% misread; 10% dropped |
+| position | current site index (nominal) | exact |
+| interoception | body resource in 16 buckets, every 20 ticks and after each action | exact bucket |
+| action echo | which action just completed | exact |
 
-Viability band (used only by the analyzer to define failures; the agent has only its own
-preference prior, `ARCHITECTURE-OPTIONS.md` section 4):
-* E > 2,000;
-* D < 6,000.
+No channel carries the hidden mode, the grammar, or any "good/bad" label.
 
-## 4. Observations (exactly what the agent receives)
+## 4. The body: a maintenance condition, disclosed as designed by us
 
-Each observation is an event `{tick, channel, value, source}`. No observation contains a hidden
-variable directly.
-
-| channel | content | imperfection |
+| component | what it is | who designed it |
 |---|---|---|
-| view | cells within radius 2 (day) or 1 (night): terrain, bush present, bush colour, fruit present | colour read wrong 5%; fruit-present wrong 5%; whole view dropped 2% |
-| wetness | a binary reading of the weather | wrong 10% |
-| clock | day/night bit | exact |
-| interoception | energy and damage in 32 buckets | exact bucket |
-| pain | on damage: amount bucket (4 levels) | exact |
-| taste | on eating: `sweet` or `bitter` | exact |
-| rustle | on `probe`: a pitch (3 values) correlated with kind (80% the kind's pitch) | noisy by design |
-| self | own position | exact |
+| resource R ∈ [0, 1000] | −1 per tick; `move` −6, `touch` −10, `look` −1, `rest` +8 per tick of rest (cap 1000) | the world's physics (us) |
+| interoceptive signal | R in 16 buckets, read by the agent as an observation like any other | the sensor (us) |
+| innate regulation | the network's activity homeostasis (`ARCHITECTURE-OPTIONS.md` section 3.4): keeps unit activity near a target rate so learning neither runs away nor dies out. It is **not** about R | the agent's design (us) |
+| human-added preference or cost | **none in the first experiment.** No term rewards high R or penalises low R. R is only predicted, like every other channel | — |
 
-## 5. Actions (small set, no macros)
+**Incapacity and rescue.** When R reaches 0 the body cannot act for 2,000 ticks; it then
+restarts with R = 500. This restart is an **external rescue** by the world, not self-recovery.
+The analyzer records three separate events: `maintenance_failure` (R = 0), `external_rescue`
+(the reset), `resumption` (first action after it). None of them is counted as recovery by the
+agent. There is no "survival instinct" in the agent and none is claimed.
 
-| action | duration | energy cost | effect |
+## 5. Actions
+
+| action | duration (ticks) | resource | effect on the world |
 |---|---|---|---|
-| `look(cell)` | 5 | 2 | a fresh, independent view reading of one visible cell |
-| `move(dir)` | 10 (20 at night) | 8 | one cell, if not outside the grid |
-| `probe(bush)` | 15 | 5 | **reversible experiment**: a rustle reading; no damage, no fruit |
-| `shake(bush)` | 20 | 15 | the causal rule of the bush's kind (may give fruit, may cause damage) |
-| `eat` | 10 | 2 | eats a dropped fruit at the agent's cell, if any (taste observed) |
-| `rest` | 50 | 0 | nothing; damage recovers at the cell's rate |
+| `look` | 2 | −1 | an extra independent read of the neighbour channels |
+| `move_left`, `move_right` | 6 | −6 | changes the site |
+| `touch` | 10 | −10 | resets the local emitter's phase; forces a short cycle for 100 ticks |
+| `rest` | 20 | +8 per tick | nothing |
 
-No action is "go to food" or "avoid hazard". Every such behaviour must come from the agent's
-model and action evaluation.
+In the first experiment the actions are chosen by a **fixed random sampler** from a seeded
+stream (`FIRST-EXPERIMENT.md`): the question of this stage is whether experience leaves
+traces, not how actions are chosen. Action selection from the agent's own model is a later
+stage.
 
-## 6. Change over time
+## 6. Control worlds (same seeds, same action streams)
 
-| change | frequency | known to the agent? |
+| world | difference | purpose |
 |---|---|---|
-| day/night, weather, season, fruit regrowth | recurring | no rule is given; only observations |
-| **regime shift** | unannounced; at pre-drawn times (one per 150,000-250,000 ticks, from the seed) | no |
+| **shuffled order** | each site's token sequence is a random permutation of the original one (same symbol frequencies, no temporal grammar) | the memory tests should fail here |
+| **iid** | tokens drawn independently from each site's marginal distribution | same |
+| **label permutation** | every symbol relabelled through a fixed bijection | a hard-coding check: results must be unchanged |
 
-At a regime shift:
-* 50% of the colour → dominant-kind assignments are re-drawn (bushes "re-rooted");
-* the bramble layout is re-drawn.
+## 7. Patchland (deferred, optional)
 
-Every shift time is written to the analyzer's world log only.
-
-A life lasts 10^6 ticks by default (about 5 regime shifts). This is a configuration choice for
-experiments; the agent cannot detect it.
-
-## 7. Seeds and variants
-
-* A world seed fixes the initial layout, colours, kinds, weather sequence and shift schedule.
-  Independent lives use different seeds.
-* **Label permutation variant:** the same world with every observation value relabelled through
-  a fixed bijection (colours, pitches, channel ids). This is a falsification control.
-* **No-structure control world:** kinds independent of colour and rustle, and hazards uniform.
-  Nothing is learnable beyond base rates, so no improvement is expected.
+The 16 × 16 object world of the earlier draft is kept in the repository history as an optional
+later environment. If used, its meanings (fruit, damage, shelter) stay in the world only; the
+agent still receives no labels.

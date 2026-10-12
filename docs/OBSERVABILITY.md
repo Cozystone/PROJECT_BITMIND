@@ -93,6 +93,31 @@ A narrator, if added later, renders template sentences **only from trace fields*
   forbidden (list in `SAFETY-AND-SCOPE.md`).
 * The narrator is a reading aid for humans. It is not evidence of experience or awareness.
 
+## 7. Neural dynamics and plasticity records (candidate C; added 2026-10-12)
+
+The learner is not touched by any of these; they are written by the one-way sink.
+
+| record | content | rate |
+|---|---|---|
+| `State` | x(t) and r(t) (f32, N values each); max \|x\|; with the LTC flag, τ_sys(t) | every 10 ticks; every tick within ± 2,000 ticks of a flagged event |
+| `Prediction` | per block: p̂_k(t), predictive entropy | every tick a block has an event, and every 10 ticks otherwise |
+| `Error` | per event: e_k(t), surprise_k(t), the learning signal L(t) (N values) | per event |
+| `Trace` | summary of eligibility traces: per-unit ‖ε_i·‖, and the full matrix every 10⁴ ticks | as stated |
+| `Plasticity` | ΔW_in, ΔW_rec, ΔW_out per tick: norms per unit; full matrices every 10⁴ ticks and before/after each flagged event | as stated |
+| `Homeostasis` | the per-unit scale factors applied, r̄_i, the target | every T_h |
+| `Numerics` | solver step, NaN/overflow guard trips, clip counts | per tick with any guard trip; summary per window |
+
+For a spiking candidate (B, deferred) the same layers would carry spike times, membranes,
+synaptic currents, the plasticity's local factors, threshold/adaptation variables, and
+silence / synchrony / runaway detectors. For the continuous-time candidate the separation of
+**state change** (`State`) from **parameter change** (`Plasticity`, `Homeostasis`) is the
+central distinction and is enforced by separate record types.
+
+**Chain and blocking records.** The analyzer links `WorldEvent` → `RawObservation` → `Error`
+→ `Trace` → `Plasticity` → later `Prediction` differences against the plasticity-off clone,
+and runs the blocking test of `MEASUREMENT-PLAN.md` section 3. Analyzer-only hidden state
+(the world's grammar, the hidden mode, change times) stays in the truth file.
+
 ## 6. Dashboard (later)
 
 Text, CSV and JSON first. The minimum later dashboard shows:

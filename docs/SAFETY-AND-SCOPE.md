@@ -45,6 +45,17 @@
 Internal variables are named functionally: energy, damage, prediction error (surprise),
 uncertainty (entropy), information gain, risk, cost, preference prior.
 
+## 4a. Maintenance conditions are not instincts (added 2026-10-12)
+
+The simulated body's resource, the interoceptive signal, the agent's activity regulation and
+any human-added cost are four different things (`CONTINUOUS-WORLD-SPEC.md` section 4). None of
+them is reported as a "survival instinct", "drive" or "will to live". When the world resets an
+incapacitated body, the record says `external_rescue`; it is never counted as self-recovery.
+
+Reacting to input, or complex internal oscillation, is reported as state dynamics, not as
+learning, memory or thought. A change is called a memory trace only when it passes the
+state-reset and plasticity-off controls of `MEASUREMENT-PLAN.md`.
+
 ## 5. Claude's roles in this project
 
 1. **Systems engineer:** builds the world, agent, instruments and runners to the specification.

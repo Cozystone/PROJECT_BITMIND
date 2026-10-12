@@ -1,116 +1,171 @@
-# Architecture options
+# Architecture options (revised 2026-10-12)
 
-Three designs compared before any implementation. The criteria come from the research
-question.
+The earlier choice (an explicit categorical/Dirichlet state-space model with expected-free-energy
+action selection) is **demoted** to an interpretable baseline (candidate A). It is not the
+cognitive core. Section 1 discloses what it presupposes; sections 2-3 compare three
+candidates on the user's questions and specify the chosen one exactly.
 
-## 1. The options
+## 1. What candidate A (explicit probability tables) presupposes
 
-**A. HDC/VSA reuse.**
-* Situations are encoded as bound hypervectors; an item memory stores
-  (situation ⊗ action → outcome) associations.
-* Predictions come from nearest-neighbour similarity, and evidence provenance ledgers are reused
-  from the archived research.
-* Uncertainty would be read from similarity margins and neighbour counts.
-
-**B. Explicit, small probabilistic state-space model.**
-* A factored generative model with discrete variables:
-  * latent per-object attributes (for example a bush's kind);
-  * latent world state (weather);
-  * body state from interoception.
-* Beliefs are categorical posteriors and Dirichlet counts in fixed point.
-* Transition and outcome models are count tables keyed by (action, observed context features).
-* Actions are chosen by expected free energy over a short horizon (section 4).
-
-**C. Hybrid.**
-* B is the decision and belief core.
-* HDC encodes contexts, so counts can be pooled across similar contexts, and serves as a compact
-  episodic memory.
-
-## 2. Comparison
-
-| criterion | A: HDC reuse | **B: explicit state space** | C: hybrid |
+| element | given at birth | learned | never changes |
 |---|---|---|---|
-| memory as life and memory grow | grows with stored items; needs eviction; similarity cost per query | bounded: one table per (action, context key), with fixed outcome alphabets; contexts capped and compacted with logged merges | B's cost plus an item memory |
-| representing observation error and uncertainty | indirect: similarity is not probability; noise and confidence are hard to separate | direct: sensor-noise parameters are learned as counts; posteriors carry uncertainty; surprise is -log2 p(o) | as B for decisions |
-| path from failure to belief revision | update or append items; no explicit "this prediction failed by this much" | explicit: a prediction error (surprise) updates the specific counts; change detection on surprise statistics triggers faster forgetting of the affected table | as B |
-| risk of becoming a hard-coded goal tracker | moderate: needs hand-designed retrieval and decision rules | lower and **checkable**: the only goal-like element is a small, explicit preference prior over interoceptive observations; action selection is one formula, applied to every action | as B, plus similarity heuristics to audit |
-| diagnosability | low to moderate: a hypervector is opaque without decoding | high: every belief is a readable table entry; every choice is a decomposition (risk, ambiguity, information gain, cost) | moderate |
-| laptop-class feasibility | yes (popcount), but memory grows | yes: tables of KBs to MBs; planning over 6 actions with horizon ≤ 3 | yes, but heavier |
-| forced reuse of old BITMIND assets | high (the temptation the instructions warn about) | none | some, but justified only after B shows a generalisation gap |
+| variables and their categories | every latent variable (per-object attribute, hidden mode), every observation channel and its alphabet | — | the set of variables |
+| observation (sensor) model | the form p(reading \| true value) as a confusion table with Dirichlet prior | the counts | the table's shape |
+| transition and outcome models | p(outcome \| action, context key) as count tables; the **context key** (which observed features matter, and in what combination) | the counts | the keys |
+| action effects | the fact that each action has an outcome distribution per key | the distribution | which features define a context |
+| preference / maintenance range | an explicit log-preference over interoceptive buckets | — | the preference |
+| what changes with experience | numbers in fixed tables | | |
+| what cannot be represented | a temporal relation not expressible in the given keys (e.g. "the token two events ago at the neighbouring site"); a new latent variable | | |
 
-## 3. Choice: B. C is a pre-specified later ablation, not a plan
+It is a pre-designed world model whose numbers are updated. That is a fair baseline ("what a
+hand-designed model of this world achieves") and a diagnostic tool, not a system that can
+represent temporal relations it was not told about.
 
-**Choice.** B is chosen because the research question is about **change over a lifetime**.
-Detecting that change requires:
-* beliefs whose uncertainty and revision can be read and audited;
-* one action-evaluation rule whose components can be ablated.
+## 2. Three candidates on the same questions
 
-B gives this with the least machinery and no inherited assumptions.
+A = explicit probability tables (above). B = small recurrent spiking network (LIF) with
+online local plasticity. C = small continuous-time rate network (CT-RNN, with an optional
+LTC-style input-dependent time constant) with online local plasticity.
 
-**Why A was rejected.** Its uncertainty is not probabilistic, so calibration (confidence vs
-accuracy) cannot be audited directly. It also invites reuse of the archived engine "because it
-exists", and its revision path after failure is implicit.
+| question | A | B | C |
+|---|---|---|---|
+| remembers order and intervals of irregular events? | only through its context keys (fixed look-back; intervals only if binned into the key) | yes in principle: membrane and synaptic time constants plus recurrence hold recent history; order is in the state trajectory | yes in principle: leaky-integrator state with several time constants; order and timing in the trajectory |
+| what happens to internal state with no input? | nothing (tables are static) | decays to rest (τ_mem, τ_syn), possibly self-sustained activity through recurrence | decays toward the fixed point x = b-driven value at rate 1/τ; may oscillate through recurrence; bounded (LTC Theorem 2 argument) |
+| state change vs lasting learning: how separated? | trivially: only counts change | state = (I, U); parameters = (W, V). Separate logs; a state reset test isolates W | state = x; parameters = (W_in, W_rec, W_out). Same separation; state reset test |
+| what updates connections without targets or reward? | nothing but counts of what happened | needs a third factor; without targets the only self-generated signal is the error of the network's own prediction of the next input (rate-decoded) | the same: next-observation prediction error, computed where the prediction is read out |
+| is the needed information local to the synapse? (Neftci Box 3) | n/a | presynaptic trace, postsynaptic state: yes; the error must be routed to hidden units (random feedback: yes; BPTT: no) | same; one eligibility trace per synapse (O(N²)), error routed by fixed random feedback |
+| runaway or silence prevention | n/a | spike-rate homeostasis (threshold adaptation or synaptic scaling); weight bounds; risk of over-synchrony | activity homeostasis by slow synaptic scaling; weight bounds; bounded state by the semi-implicit step |
+| cost on an ordinary PC | KB-MB; microseconds per update | N = 128 LIF with Δt = 1 tick: ~50k ops per tick; traces O(N²); surrogate derivative needed for the prediction readout | N = 64-128: ~20-40k multiply-adds per tick; one life of 10⁶ ticks in minutes; memory < 50 MB |
+| can internal logs and ablations locate the cause of a change? | yes, trivially | yes with effort: spike rasters, membranes, traces, ΔW; many knobs (threshold, reset, surrogate, refractory) each needing ablation | yes: x(t), e(t), ε(t), ΔW per window; fewer knobs |
+| violates project rules? | no | no, if plasticity is local and no BPTT | no, if plasticity is local and no BPTT. **LTC as published requires BPTT**; only its state equation is used |
+| forced reuse of old BITMIND assets | none | none | none |
 
-**Why C was not chosen now.** It adds a second representation before there is evidence that B
-fails to generalise. Its trigger is pre-specified: C is considered only if B shows a measured
-generalisation gap, such as slow learning in contexts that differ only in irrelevant features.
-It would then be introduced as an ablation-tested module, with HDC justified by that
-measurement.
+**Why not B first.** Spiking adds the non-differentiable readout problem (a surrogate
+derivative is needed even for our local rule), a coding decision (rate vs timing) that our
+first question does not need, and more regulation knobs (threshold, reset, refractory,
+synchrony). None of these helps answer "does experience leave traces". B is **deferred**:
+it becomes the next candidate only if C answers the first question and the next question
+needs event-driven computation.
 
-## 4. How the free-energy principle becomes computation in B (operational, traceable)
+**Why not A as core.** It cannot represent relations outside its keys; it would make
+"experience leaves traces" true by construction for the keyed relations and false by
+construction for the others. It stays as the interpretable baseline that tells us what a
+hand-designed model of the same world achieves.
 
-| term | what it is in code | logged as |
+**Choice: C**, in the smallest form, with the LTC time-constant term as a flag (default off).
+
+## 3. Candidate C, exactly
+
+### 3.1 Encoding (fixed; designed by us)
+
+Observation vector o(t) ∈ ℝᵐ built from the events of `CONTINUOUS-WORLD-SPEC.md` section 3:
+* token here: one-hot over 6 symbols, held for 1 tick when an event arrives, else zero;
+* token nearby: two one-hot blocks of 6;
+* position: one-hot over 8;
+* interoception: one-hot over 16 buckets (held until the next reading);
+* action echo: one-hot over 5.
+
+m = 6 + 12 + 8 + 16 + 5 = 47. No channel is special-cased in the agent; the agent sees one
+vector.
+
+### 3.2 State equation (one step Δt = 1 tick, semi-implicit Euler as in Hasani Eq. 3)
+
+Hidden state x ∈ ℝᴺ, N = 64 (first experiment), rate r = tanh(x).
+
+    u(t) = W_rec r(t) + W_in o(t) + b
+    g(t) = 0                              (flag LTC off: a plain CT-RNN)
+    g(t) = σ(W_g r(t) + W_gi o(t) + b_g)   (flag LTC on; W_g fixed random, not learned)
+    x(t+1) = ( x(t) + Δt · ( u(t) + g(t) ⊙ A ) ) / ( 1 + Δt · ( 1/τ + g(t) ) )
+
+τ ∈ ℝᴺ fixed per unit, drawn log-uniform in [4, 400] ticks at birth (a spread of time
+constants, so the state can hold information over several horizons). A is a fixed vector.
+The denominator keeps the update stable at Δt = 1 (the LTC paper's reason for the fused step).
+
+### 3.3 Prediction and error (the only teaching signal)
+
+For each observation block k (a categorical channel), a readout predicts the next value:
+
+    z_k(t) = W_out,k r(t) + c_k            logits
+    p̂_k(t) = softmax(z_k(t))               prediction for the block's next event
+
+When an event of block k actually arrives at t with value v:
+
+    e_k(t) = onehot(v) − p̂_k(t)            prediction error (local to the readout)
+    surprise_k(t) = −log p̂_k(t)[v]         logged; not used by learning beyond e_k
+
+Between events a block produces no error (no update), so sparse channels do not drown the
+others.
+
+### 3.4 Plasticity (local; forward in time; no BPTT)
+
+* Readout (delta rule): ΔW_out,k = η_out · e_k(t) · r(t)ᵀ. Local: postsynaptic error ×
+  presynaptic rate.
+* Hidden units get a learning signal by **fixed random feedback** (direct feedback alignment,
+  Neftci Fig. 5c):
+
+      L(t) = B e(t)          B ∈ ℝᴺˣᵐ fixed random at birth; e = concatenated block errors
+
+  Ablation arm: B = W_outᵀ (weight transport).
+* Eligibility traces, one per synapse, forward in time (SuperSpike form without BPTT):
+
+      ε_ij(t+1) = λ_i ε_ij(t) + (1 − λ_i) · r′(x_i(t)) · pre_j(t)
+
+  with pre_j = r_j for W_rec and o_j for W_in, λ_i = exp(−1/τ_i) (the trace decays with the
+  unit's own time constant, so credit is assigned over the horizon the unit integrates).
+* Three-factor update at every tick where some e ≠ 0:
+
+      ΔW_rec,ij = η · L_i(t) · ε_ij(t),    ΔW_in,ij = η · L_i(t) · ε^in_ij(t)
+
+* Weight bounds: |W| ≤ w_max, clipped.
+* **Activity regulation (innate, slow; not learning):** every T_h = 500 ticks, for each
+  unit, the incoming weights are scaled by (1 + η_h (r* − r̄_i)) where r̄_i is the unit's
+  mean |r_i| over the window and r* = 0.2 a fixed target. This keeps units from saturating or
+  going silent. It is logged as `homeostasis`, separately from plasticity, and is ablated in
+  one arm.
+
+Locality check (Neftci Box 3): each ΔW_ij uses W_ij, the presynaptic trace ε_ij (built from
+pre_j and the postsynaptic r′(x_i)), and L_i, which is a single modulating signal delivered to
+unit i. Nothing from another synapse or another unit's state is used.
+
+### 3.5 What is given at birth, what is learned, what never changes
+
+| element | given | learned | fixed forever |
+|---|---|---|---|
+| encoding of channels, m = 47 | yes | | yes |
+| N, τ distribution, A, B, W_g (if LTC on) | yes (seeded) | | yes |
+| W_in, W_rec, W_out, b, c | random init | **yes, continuously** | |
+| η, η_out, η_h, r*, w_max, T_h | yes | | yes |
+| the body's resource physics and rescue | in the world | | yes |
+| any preference over interoception | **none** | | |
+
+### 3.6 Action (first experiment)
+
+Actions come from a fixed seeded random sampler outside the agent (`FIRST-EXPERIMENT.md`).
+The agent's output is prediction only. Action selection from the agent's own predictions is
+the next stage, after the first gate; two candidate rules are recorded there, neither is
+implemented now.
+
+## 4. Free-energy-principle terms, mapped honestly
+
+| FEP term | in C | logged |
 |---|---|---|
-| beliefs q | categorical posteriors over latent attributes (each bush's kind; the weather) and Dirichlet counts of outcome models p(outcome \| action, context) and sensor models p(reading \| true value) | belief snapshot per decision, and diffs per update |
-| uncertainty | entropy of each posterior; predictive entropy; total Dirichlet concentration (evidence mass) | per belief, per prediction |
-| prediction | the predictive distribution of the next observation for the chosen action (outcome model × sensor model under q) | per action, before its outcome |
-| prediction error (surprise) | -log2 p(observed \| prediction), in fixed point (Q16 bits) | per observation; an exponential moving summary per channel |
-| variational free energy F | complexity - accuracy for the update caused by an observation: KL(q_after ‖ q_before) - log p(o \| q_before), computed exactly over the small discrete variables touched | per update |
-| preferences C | a fixed, explicit log-preference over interoceptive buckets: energy above a band, damage below a band. **The only goal-like element** | written once at birth; never changed by code |
-| expected free energy G(a) | for each candidate action a (horizon h ≤ 3 through the learned models): risk + ambiguity - information gain + cost (see below) | the full decomposition for every candidate, every decision |
-| action selection | softmax over -G with a fixed precision γ, sampled with the agent's seeded RNG (deterministic replay) | chosen action, the probabilities, the unchosen top candidates |
+| beliefs about world and self | the state x(t) and the weights (no explicit posterior) | x(t) per tick (subsampled), W per window |
+| uncertainty of beliefs | entropy of p̂_k(t) per block (predictive uncertainty only; no parameter uncertainty is represented) | per prediction |
+| prediction of the next observation | p̂_k(t) | per block |
+| mismatch | e_k(t), surprise_k(t) | per event |
+| maintenance range | **none in the agent**; the body's physics only | world log |
+| value of information-gathering action | **not computed** (actions are external in this stage) | — |
+| risk and cost of action | **not computed** | — |
+| variational free energy | **not computed** (no recognition density) | — |
 
-The terms of G(a):
-* **risk** = KL(predicted interoceptive outcome ‖ C);
-* **ambiguity** = expected sensor entropy;
-* **information gain** = expected KL change of the Dirichlet parameters and latent posteriors;
-* **cost** = predicted energy and time.
+## 5. Hard-coding risks specific to C, and their checks
 
-**Irreversibility.** For actions with a learned non-zero probability of damage, risk is
-evaluated at an upper quantile of predicted damage under parameter uncertainty (a credible
-bound computed from the Dirichlet counts), not at its mean. When the model is uncertain,
-possible harm therefore counts more. This follows from the posterior, not from a hand-written
-"avoid" rule.
-
-**Revision after failure.**
-* Counts are updated by every observation.
-* A per-table change detector compares recent surprise with its long-run level (a CUSUM
-  statistic over -log2 p). When it fires, that table's old counts are discounted by a fixed
-  factor (bounded memory of the past regime), and the event is logged as a revision.
-* There is no other forgetting.
-
-**Words not used.** "Curiosity" (information gain is a term of G), "fear" (risk is a term of G),
-"self-model" (the body model is a set of tables). See `SAFETY-AND-SCOPE.md`.
-
-## 5. Bounded memory
-
-* Context keys are tuples of observed features: (action, colour, wetness reading, day/night,
-  terrain, pitch if probed). At most a few thousand exist.
-* Outcome alphabets are fixed and small.
-* Per-object posteriors: 12 bushes, small.
-
-If the context count exceeds a cap, the least-used contexts are merged into their marginal
-(feature-dropped) table. Every merge is logged.
-
-Expected resident memory: under 50 MB. LifeTrace lives on disk (`OBSERVABILITY.md`).
-
-## 6. Code layout (for the implementation phase)
-
-| crate | role | may depend on |
-|---|---|---|
-| `life-interface` | `Observation`, `Action`, `ActionResult` types only | nothing |
-| `life-world` | world state, rules, scheduler, truth log | interface |
-| `life-agent` | beliefs, models, expected free energy, choice | interface only, **never** world or lab |
-| `life-trace` | append-only trace writer (a one-way sink) | interface |
-| `life-lab` | analyzer, replay, provenance, diff, profiler, metrics | everything, read-only |
-| `life-run` | wires one life, baselines, ablations | all |
+* The encoding could smuggle structure (e.g. ordering symbols): symbols are one-hot and
+  label-permutation must leave all results unchanged.
+* The time-constant spread could be tuned to the world's intervals: τ is drawn log-uniform
+  over a range fixed before the world's interval distribution was drawn; both are seeded
+  independently and logged.
+* The random action sampler could correlate with the world: its seed is independent and it
+  never reads observations.
+* The agent crate must not import the world crate (CI check) and must contain no channel
+  names, no site indices, no action-specific branches.

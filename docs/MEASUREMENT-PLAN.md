@@ -1,123 +1,114 @@
-# Measurement plan
+# Measurement plan (revised 2026-10-12)
 
-Everything here is fixed **before the first run**. Windows, definitions and thresholds are not
-changed after results are seen. Any change requires a dated amendment written before the runs it
-affects, and is reported.
+Everything here is fixed before the first run. The evaluation values are computed by the
+analyzer from the traces and the world's truth log; **none is fed back to the learner**.
+When prediction learning is used, the only target is the observation the agent actually
+received; hidden world state is never a target.
 
-## 1. Lives
+## 1. Lives, clones and controls
 
-* **Main experiment:** 15 independent lives (world seeds 1-15) of 10^6 ticks each. Each life has
-  about 5 unannounced regime shifts.
-* **Every baseline and ablation** lives the same 15 world seeds.
-* The main life of an agent is never reset or rewound for evaluation. Replicate runs, from
-  checkpoints or with other seeds, are separate lives and labelled as such.
+* **Main life:** one agent per world seed, 10⁶ ticks, memory never reset. 10 independent
+  world seeds (lives) for the first experiment.
+* **Clones** are separate individuals, named as such. Each clone of a life receives the
+  identical seeded action stream and the identical world stream (where the world is the same),
+  so differences come from the agent, not from different experiences.
+* The end of the observation period is a configuration choice; it is not called death.
 
-## 2. Operational definitions
-
-| term | definition (computed by the analyzer from LifeTrace and the world truth log) |
-|---|---|
-| **viability exit** | the body leaves the band (energy ≤ 2,000 or damage ≥ 6,000), or a collapse |
-| **recovery time** | ticks from a viability exit until the body is back inside the band for 1,000 consecutive ticks |
-| **confident error** | the agent's prediction gave the observed outcome a probability ≤ 0.1, while the predicted top outcome had ≥ 0.9 (surprise ≥ log2 10) |
-| **failure class** | (action type, the agent's decision context key) for confident errors; (true damage source, action type, context key) for damage events. The context key is what the agent observed; the true source is analyzer-only |
-| **recurrence** | a failure of a class that already occurred earlier in the same life |
-| **re-adaptation time** after a shift | ticks from the shift until the rolling mean surprise (window 5,000 ticks) on the outcome and view channels returns to within 10% of its mean over the 50,000 ticks before the shift |
-| **viability after a shift** | the fraction of the 20,000 ticks after the shift spent inside the band |
-| **memory reuse** | a decision whose chosen action's prediction relied on counts last updated more than 100,000 ticks earlier and was correct |
-
-Windows: each life is read in 10 consecutive windows of 10^5 ticks. The first 20,000 ticks are a
-burn-in, reported but excluded from H1a slopes.
-
-## 3. Series recorded for every life (CSV per life, plotted per window)
-
-1. viability: energy, damage, time in band, collapses;
-2. prediction error (surprise) per channel, and uncertainty (posterior entropy, predictive
-   entropy);
-3. recovery time after each viability exit;
-4. recurrence rate of each failure class per window;
-5. information per action: the realised KL of the belief update, expected against realised;
-   prediction improvement (change in surprise on the next observations of the same context);
-6. resource and risk cost per action: energy spent, damage taken, time;
-7. calibration: predicted-probability deciles against observed frequency; confident errors
-   listed individually;
-8. memory reuse events;
-9. adaptation around each regime shift: surprise and viability from -50,000 to +50,000 ticks;
-10. resources: resident memory, decision time, trace bytes per window.
-
-## 4. Baselines and controls (same seeds)
-
-| name | what it is | what it controls for |
+| arm | what differs | question it answers |
 |---|---|---|
-| random | uniform over legal actions | chance and world drift |
-| fixed-rule | a hand-written heuristic: shake the nearest bush with fruit, eat, rest when damage is high, avoid brambles once entered; no learning | "a designed policy already does this" |
-| probe-only (BITMIND-style) | the same models, but actions maximise information gain only (no risk or cost terms), like D060's disagreement probing | whether the risk-aware objective matters |
-| learning off | the agent with models frozen at their priors | whether change comes from learning |
-| no change detection | the agent without the surprise-triggered discounting | whether revision after failure matters for H1b |
-| fresh-born | the agent born at a shift time into the post-shift world, with no prior experience | whether prior experience helps re-adaptation (H1b-ii) |
-| label permutation | the agent in the permuted world | dependence on label values (a hard-coding check) |
-| no-structure world | the agent where nothing is learnable | negative control: no improvement expected |
+| C (main) | — | the hypothesis |
+| C, plasticity off | η = η_out = 0 from birth; homeostasis on | is the effect dynamics only? |
+| C, plasticity off after t₀ | learning until t₀ = 2 × 10⁵, then frozen | do traces persist and keep acting? |
+| C, homeostasis off | η_h = 0 | is regulation needed, and is it doing the learning? |
+| C, Wᵀ feedback | B = W_outᵀ | does random feedback limit learning? |
+| C, LTC flag on | input-dependent τ | H-LTC-1 (expected: no difference) |
+| A (tables) | the explicit baseline | what a hand-designed model of this world achieves |
+| random predictor | predicts each block's running marginal | floor |
+| **shuffled world** | C in the order-shuffled world | memory tests must fail |
+| **iid world** | C in the iid world | same |
+| **label permutation** | C in the relabelled world | results must be unchanged |
 
-## 5. First research gate (decision rules fixed now)
+## 2. The six "experience leaves traces" measures (definitions)
 
-**H1a (within-life recovery).** For each life, compute the Spearman slope over windows 1-10
-(after burn-in) of:
-* (i) median recovery time;
-* (ii) recurrence rate of failure classes.
+All probes are **offline**: the analyzer takes a checkpoint of the agent (x and W), runs the
+probe on a copy, and discards the copy. The main life never sees a probe.
 
-H1a is **observed** if, for (i) or (ii), all three hold:
-* at least 12 of 15 lives have a negative slope (sign test, p < 0.02);
-* the agent's slopes are more negative than the learning-off ablation's (Mann-Whitney, one-sided
-  p < 0.05);
-* the same does not hold in the no-structure world (fewer than 12 of 15 negative slopes).
+1. **History dependence.** Take two checkpoints of the same life at ticks t₁ < t₂ that are
+   followed by the same 200-tick input window (the analyzer searches the truth log for
+   repeated windows; the world is built so that short windows recur). Feed the window to both
+   copies with **the fast state reset to zero** (x ← 0) so only W differs. Measure
+   D_hist = mean KL(p̂ at t₂ ‖ p̂ at t₁) over the window. Compare with the plasticity-off arm
+   (expected ≈ 0).
+2. **Persistence.** For a trace created by a distinctive event sequence S at tick t (an
+   analyzer-detected novel sub-grammar), measure the prediction of S's continuation at
+   t + Δ for Δ ∈ {10³, 10⁴, 10⁵} with state reset. Persistence = the fraction of Δ at which
+   the prediction of S's continuation beats the marginal predictor by ≥ 0.5 bits.
+   **Dynamics horizon:** H_dyn = the lag at which the autocorrelation of x falls below 0.05
+   (measured on the plasticity-off arm). A trace counts as lasting only if it survives both the
+   state reset and Δ ≥ 10 · H_dyn.
+3. **Consequence.** Freeze W at t and at t − 10⁴; run both on the same held-out future
+   stream (from the truth log, next 5,000 ticks); Δsurprise = mean surprise difference. Positive
+   means the later weights predict the future better.
+4. **Order.** For sequences ABC and ACB that both occur at a site, after state reset present
+   each and measure the predicted next-symbol distributions; D_order = KL between them.
+   Compare with the shuffled world (expected ≈ 0).
+5. **Revision.** At each unannounced structural change, measure the surprise on the changed
+   sites from −20,000 to +50,000 ticks; T_revise = ticks until the rolling mean (window 2,000)
+   returns within 10% of its pre-change level. Compare the plasticity-off arm (no return
+   expected) and a **fresh-born** clone started at the change time.
+6. **Reuse (savings).** When a grammar reappears after an absence, compare T_revise on its
+   reappearance with T_revise on its first appearance; savings = 1 − T_second / T_first.
 
-**H1b (re-adaptation).** Over all regime shifts of all 15 lives, both must hold:
-* **(i) viability:** the agent's viability after shifts exceeds random's (Mann-Whitney,
-  p < 0.05);
-* **(ii) re-adaptation time:** shorter than the fresh-born control's (prior experience helps)
-  and shorter than the learning-off agent's (Mann-Whitney, p < 0.05 each).
+Also recorded, per window of 10⁵ ticks:
+* surprise and predictive entropy per block;
+* calibration: predicted-probability deciles vs observed frequency; count of confident
+  errors (p̂[v] ≤ 0.1 with max p̂ ≥ 0.9);
+* ‖ΔW‖ per window, split into plasticity and homeostasis;
+* maintenance failures, external rescues, resumptions (separately);
+* numerical health: max |x|, NaN guard trips, solver step;
+* resources: resident memory, ticks per second, trace bytes.
 
-**Gate verdict:**
+## 3. Chain tests (event → response → ΔW → later response)
 
-| verdict | condition |
-|---|---|
-| **supported** | H1a and H1b both observed |
-| **partial** | exactly one observed. Reported as partial; not a pass |
-| **not supported** | neither observed. Recorded as "keeping it running does not by itself make it adapt better"; a new hypothesis is written; no features are added to rescue H1 |
+For each analyzer-flagged event (a novel sub-grammar first appearance, a structural change):
+* the `provenance` tool must link the event's observations to the errors e(t), to the
+  eligibility traces that were non-zero, to the ΔW entries of that window, and to the first
+  later prediction that differs from the plasticity-off clone;
+* **blocking test:** a clone with plasticity disabled only during [t_event, t_event + 500] must
+  lose the later difference. If the difference remains, the chain is not the cause.
 
-Confident errors are audited separately in every verdict: calibration in the top decile, and
-the count of confident errors per window.
+## 4. Gate for the first experiment (fixed now)
 
-## 6. Falsification plan: separating "growth" from chance, bugs and hard-coding
+Over the 10 lives, candidate C is **supported** on the first question if all hold:
+* measure 1 (history, with state reset) is positive and exceeds the plasticity-off arm in
+  ≥ 8 of 10 lives (sign test p < 0.06), and ≈ 0 in the shuffled and iid worlds;
+* measure 2: lasting traces (Δ ≥ 10 · H_dyn, state reset) exist in ≥ 8 of 10 lives;
+* measure 3: Δsurprise > 0 in ≥ 8 of 10 lives;
+* measure 4: D_order exceeds the shuffled world in ≥ 8 of 10 lives;
+* measure 5: T_revise finite in ≥ 8 of 10 lives and shorter than the plasticity-off arm's
+  (which should not revise);
+* the label-permutation arm reproduces all of the above within noise;
+* the blocking test removes the effect in ≥ 8 of 10 flagged events.
 
-Before any trend is called a result, these are checked and reported:
+Measure 6 (reuse) is reported, not gated, in this stage.
 
-1. **Chance:** sign tests across 15 independent lives; no claim from one life. Window-shuffle
-   surrogate: recompute the slope with windows randomly permuted 1,000 times; the observed
-   slope must be outside the surrogate's 95% range.
-2. **Learning is the cause:** the effect must be absent or significantly smaller in the
-   learning-off ablation.
-3. **Hard-coding:**
-   * **label permutation:** the effect must persist with every observation value relabelled;
-   * **no-structure world:** no improvement appears;
-   * **fixed-rule comparison:** if a 20-line heuristic equals the agent on viability, the claim
-     is limited to model-based revision, not viability;
-   * **code audit:** `life-agent` contains no world names, channel ids as constants, or
-     action-specific branches beyond the action-type enum (a checklist and a grep test in CI).
-4. **Bugs:**
-   * a trace-consistency checker: every action has its candidate decomposition; every
-     observation has a world event; no agent record references a truth field;
-   * observer invariance: identical action hashes with tracing on and off;
-   * determinism: same seed, same life, same hashes.
-5. **Oracle leakage:** a build check that `life-agent` does not depend on `life-world` or
-   `life-lab`, and a runtime check that no truth-only field type exists in the interface crate.
-6. **Selection:** results are reported for all 15 lives and all baselines; no favourable subset
-   and no chosen checkpoint branch.
+**Partial:** some but not all hold. Reported as partial, with the failing measures named.
+**Not supported:** fewer than three measures hold. Candidate C is recorded as not supported for
+the question; the next step is a new hypothesis, not a larger network or a richer world.
 
-## 7. Reporting interesting patterns
+## 5. Distinguishing growth-like trends from chance, bugs and hard-coding
 
-Every noteworthy pattern seen during runs is written up in this form (`reports/patterns/`):
-1. **Observation:** the trace ids, time range and numbers.
-2. **At least two interpretations.**
-3. **Falsification:** what comparison or perturbation would distinguish them.
-4. **Current status:** confirmed / promising / open.
-5. **What may not be claimed from it.**
+1. Chance: 10 independent lives; sign tests; window-shuffle surrogates (1,000 permutations).
+2. Dynamics vs plasticity: plasticity-off arm; state-reset probes; H_dyn threshold.
+3. Regulation vs learning: homeostasis-off arm, and homeostasis-only arm (η = 0, η_h > 0).
+4. Hard-coding: label permutation; iid and shuffled worlds; the agent crate's dependency and
+   content audit (no world names, channel ids, site indices).
+5. Bugs: trace-consistency checker; observer invariance (tracing on/off gives identical
+   state hashes); determinism (same seeds, same hashes); NaN/overflow guards.
+6. Selection: all lives, all arms reported; no favourable checkpoint branches.
+
+## 6. Reporting patterns
+
+Every noteworthy pattern: observation (trace ids, ticks, numbers); at least two
+interpretations; the comparison or perturbation that would separate them; status (confirmed /
+promising / open); what may not be claimed.

@@ -1,70 +1,60 @@
-# Research question
+# Research question (revised 2026-10-12)
 
-## Question
+## What this system is not for
 
-> Does this system, living one continuous life, recover after failures and adapt better as experience accumulates?
+It is not a foraging, survival, optimisation or task agent. No external task, correct answer
+or success reward is part of its learning. Useful behaviour may appear later; none is put in
+as a learning target now.
 
-**Living one continuous life** means:
-* one world clock that never resets;
-* one agent whose memory is never wiped;
-* observations arriving as events;
-* actions that cost time, energy and risk.
+Four things are kept apart, in code and in reports:
 
-The agent never learns when an evaluation starts or ends. Outside observers read sliding time
-windows.
+| kind | examples | status |
+|---|---|---|
+| external task | predicting a label, collecting fruit, maximising a survival score | **forbidden** as a core learning objective |
+| conditions of existence | a resource that activity consumes, physical limits, a range the body must stay in | allowed, **disclosed as designed by us** (`CONTINUOUS-WORLD-SPEC.md` section 4) |
+| learning principle | update from the error of the agent's own next-observation prediction; local plasticity; activity regulation | necessary; **not evidence of being alive or aware** |
+| researcher's metrics | measures of change, memory and adaptation | computed by the analyzer; **never given to the learner** |
 
-## Hypothesis H1 (operational)
+"No external purpose" does not mean "no update rule". And a survival reward renamed
+"homeostasis" is still a reward: the only teaching signal allowed is the observation that
+actually arrives next.
 
-An agent that keeps a model of the world and of its own body, maintains beliefs with explicit
-uncertainty, compares predictions with what it observes, revises the model where the two
-disagree, and chooses actions by the expected consequences for its viability and for the
-uncertainty of its beliefs will show, within one life:
+## The one question of this stage
 
-* **H1a (recovery).** After failures, the time to recover shrinks, or the same class of failure
-  recurs less often, later in life than earlier.
-* **H1b (re-adaptation).** After an unannounced partial change of the world's structure,
-  prediction and viability recover faster than under a random baseline. They also recover
-  faster than under the same architecture with learning disabled, measured from the moment
-  of change.
+> Does experience leave lasting traces in the system, and do those traces change what it predicts and does later?
 
-"Failure", "recovery", "class of failure" and the windows are defined operationally in
-`MEASUREMENT-PLAN.md` before any run. They are not changed afterwards.
+Operationally (definitions and windows in `MEASUREMENT-PLAN.md`):
+1. **history dependence:** the same present input produces a different response because of
+   different past events;
+2. **persistence:** that difference survives long after the events, and survives a reset of
+   the fast state (so it lives in the connections, not only in the activity);
+3. **consequence:** the connection changes alter later predictions (and, in a later stage,
+   actions);
+4. **order:** differently ordered event sequences are distinguished;
+5. **revision:** when a relation in the environment changes, the old trace is updated;
+6. **reuse:** part of the experience is reused under new conditions (savings on re-learning).
 
-## What would refute H1
+Reacting to input, or showing complex oscillations, is not learning. A clone with plasticity
+off has the same state dynamics; whatever it also shows is dynamics, not memory.
 
-H1 is not supported if, across the pre-registered number of independent lives, **neither** H1a
-**nor** H1b appears in the agent's own life (relative to its early life and to the baselines,
-as defined in `MEASUREMENT-PLAN.md`).
+## Hypothesis H1 (operational, falsifiable)
 
-In that case the result is recorded as: "keeping this system running does not by itself make
-it adapt better". **Features are not added to rescue the hypothesis**; a new hypothesis is
-written instead.
+A small continuous-time recurrent network whose only plasticity is a local three-factor rule
+driven by its own next-observation prediction error (`ARCHITECTURE-OPTIONS.md`, candidate C)
+shows 1-6 above in a continuous world with temporal structure, beyond three controls:
+* the same network with plasticity off (same seed, same action stream);
+* the same network in a world with the same marginal statistics but no temporal structure;
+* the same network in a world whose event order is shuffled.
 
-H1 is also not supported by a result that:
-* appears only in one life or one world seed;
-* appears equally in the learning-disabled ablation;
-* disappears under label permutation;
-* is explained by a trivial bug or a fixed behavioural loop (falsification plan,
-  `MEASUREMENT-PLAN.md` section 6).
+## What refutes H1
 
-## What is deliberately not the goal
+Within the fixed budget (`FIRST-EXPERIMENT.md`), if lasting experience-dependent change beyond
+the controls is not reproduced in the pre-registered majority of independent lives, candidate C
+is recorded as **not supported**. The world is not made more complex and the network is not
+made larger to postpone that conclusion. A new hypothesis is written instead.
 
-* A correctness rate on queries. There is no global "0 wrong" objective. Confident beliefs are
-  audited separately: confidence must match accuracy (calibration), and confident errors are
-  counted.
-* Language, perception of real sensors, OS control, web access, human data.
-* Any claim about consciousness, feelings, curiosity, a self, sleep, autonomy or general
-  intelligence. Internal variables are named by what they are (energy, damage, prediction
-  error), not by mental terms.
+## Not the goal, not claimed
 
-## First research gate (summary; exact rules in MEASUREMENT-PLAN.md)
-
-After the first implementation, success is not declared by a single score. Both of these must
-hold across independent lives:
-1. within one life, recovery time after failures falls, or recurrence of the same failure class
-   falls;
-2. after a partial structural change of the world, prior experience leads to faster
-   re-adaptation than the random baseline.
-
-If neither appears, H1 is recorded as not supported, and the next step is a new hypothesis, not
-more features.
+Consciousness, feelings, curiosity, a self, sleep, autonomy, general intelligence, real-world
+readiness. Internal variables are named by what they are. The end of an observation period is
+not called death or a lifetime.
