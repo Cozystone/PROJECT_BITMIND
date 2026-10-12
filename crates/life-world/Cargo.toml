@@ -1,0 +1,8 @@
+[package]
+name = "life-world"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+life-interface = { path = "../life-interface" }
+serde = { workspace = true }

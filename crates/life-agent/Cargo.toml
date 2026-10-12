@@ -1,0 +1,8 @@
+[package]
+name = "life-agent"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+life-interface = { path = "../life-interface" }
+serde = { workspace = true }

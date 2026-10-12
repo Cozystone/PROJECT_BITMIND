@@ -1,0 +1,13 @@
+[package]
+name = "life-run"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+life-interface = { path = "../life-interface" }
+life-world = { path = "../life-world" }
+life-agent = { path = "../life-agent" }
+life-trace = { path = "../life-trace" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }

@@ -1,0 +1,6 @@
+target/
+results/**/*.bin
+results/**/trace.bin
+results/**/truth.bin
+results/dev*/
+papers/

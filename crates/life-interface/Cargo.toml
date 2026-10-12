@@ -1,0 +1,7 @@
+[package]
+name = "life-interface"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }

@@ -70,6 +70,12 @@ vector.
 
 ### 3.2 State equation (one step Δt = 1 tick, semi-implicit Euler as in Hasani Eq. 3)
 
+> **Superseded (2026-10-12, before implementation):** the implemented step is the normalised
+> form x(t) = λ ⊙ x(t−1) + (1 − λ) ⊙ u(t), λ_i = τ_i/(τ_i + 1), whose fixed point is u for every τ
+> (`APPENDIX-FIRST-EXPERIMENT.md` A2). The derivation below is kept as the record of the design
+> discussion. Birth scales of W_in differ by block type since the development phase
+> (`APPENDIX-FIRST-EXPERIMENT.md` A10, Finding 1).
+
 Hidden state x ∈ ℝᴺ, N = 64 (first experiment), rate r = tanh(x).
 
     u(t) = W_rec r(t) + W_in o(t) + b

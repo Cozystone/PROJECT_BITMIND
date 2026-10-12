@@ -2,8 +2,10 @@
 
 BITMIND-LIFE is a persistent-agent research prototype. It evaluates change over a continuous lifetime, not only correctness on resettable tasks.
 
-**Status:** design only. This repository contains no code yet; implementation starts only after
-the design documents are reviewed and approved.
+**Status:** first experiment implemented (approved scope: `docs/APPENDIX-FIRST-EXPERIMENT.md`);
+development phase complete; formal seeds run only from the frozen tag (`experiments/FREEZE.md`).
+Random actions are the control condition of this round: nothing about action selection,
+self-maintenance or instinct is claimed.
 
 ## The one question of the first stage (revised 2026-10-12)
 
@@ -26,6 +28,26 @@ intelligence, autonomy, or real-world readiness.
 | [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) | LifeTrace, the learner/analyzer barrier, replay, provenance, diff, profiling, neural-dynamics records, narrator rules |
 | [docs/SAFETY-AND-SCOPE.md](docs/SAFETY-AND-SCOPE.md) | scope limits, forbidden capabilities and claims, maintenance conditions vs instincts, reporting discipline |
 | [docs/INHERITED-ASSETS.md](docs/INHERITED-ASSETS.md) | what may be considered from the archived BITMIND evidence research, and what is not carried over |
+| [docs/APPENDIX-FIRST-EXPERIMENT.md](docs/APPENDIX-FIRST-EXPERIMENT.md) | approved amendments A1-A9 (time order, traces as approximation, arms, homeostasis, probes, controls, the concrete gate) and the development phase A10 (findings, amendments, frozen configuration) |
+
+## Code
+
+| crate | role |
+|---|---|
+| `crates/life-interface` | observation and action types shared by world and agent; no truth fields; SplitMix64 streams; stream hashes |
+| `crates/life-world` | the ring world and its control variants (shuffled, iid, label permutation); body and rescue; analyzer-only truth log |
+| `crates/life-agent` | candidate C: leaky-integrator recurrent network, local three-factor plasticity on next-observation error, bounded homeostasis; depends on `life-interface` only (`scripts/check_barrier.ps1`) |
+| `crates/life-trace` | append-only binary records (observations, evaluations, state, plasticity, homeostasis, hashes) |
+| `crates/life-run` | one life: world + agent + external random action sampler; checkpoints; branches; probe streams |
+| `crates/life-lab` | analysis: audit, summary, compare, gradcheck, probes (history, usefulness, order, re-adaptation), per-seed evaluate, gate |
+
+```
+cargo build --release && cargo test --release
+./target/release/life-run run --out results/x --arm full --world-seed 1 --ticks 200000
+./target/release/life-lab summary --run results/x
+bash scripts/run_seed.sh 1 results/dev experiments/formal-config.json     # one seed, all arms
+bash scripts/run_formal.sh results/formal 2                                # seeds 101-110 (freeze guard)
+```
 
 ## Origin
 
