@@ -1,0 +1,18 @@
+{
+  "arm": "fb_wt",
+  "ticks": 1000000,
+  "status": "ok",
+  "input_hash": 7529643574814242405,
+  "action_hash": 9847645755610321244,
+  "weights_hash": 9838757461406990832,
+  "state_hash": 6187732498847549974,
+  "elapsed_s": 7.6008655,
+  "ticks_per_s": 131563.9646563934,
+  "trace_records": 1440104,
+  "trace_bytes": 51902550,
+  "evaluations": 579386,
+  "maintenance_failures": 0,
+  "rescues": 0,
+  "structural_changes": 4,
+  "numerical_failure_at": null
+}

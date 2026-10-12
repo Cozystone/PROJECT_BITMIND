@@ -1,0 +1,5 @@
+results/formal/seed102/full              arm=full       ticks=1000000  input_hash=687eaaf0021af665 action_hash=88a9dda3c109515c status=ok
+results/formal/seed102/full_shuffled     arm=full       ticks=1000000  input_hash=69ff041e8588c176 action_hash=88a9dda3c109515c status=ok
+results/formal/seed102/full_iid          arm=full       ticks=1000000  input_hash=10bd949e1931fe84 action_hash=88a9dda3c109515c status=ok
+results/formal/seed102/full_perm         arm=full       ticks=1000000  input_hash=ec25c49ae9250cce action_hash=88a9dda3c109515c status=ok
+compare: IDENTICAL streams

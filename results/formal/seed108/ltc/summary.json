@@ -1,0 +1,18 @@
+{
+  "arm": "ltc",
+  "ticks": 1000000,
+  "status": "ok",
+  "input_hash": 5349171521260770863,
+  "action_hash": 16472845832762522440,
+  "weights_hash": 11017446356245299752,
+  "state_hash": 15717057705081790935,
+  "elapsed_s": 10.133292,
+  "ticks_per_s": 98684.61305565851,
+  "trace_records": 1566815,
+  "trace_bytes": 56298699,
+  "evaluations": 632448,
+  "maintenance_failures": 0,
+  "rescues": 0,
+  "structural_changes": 5,
+  "numerical_failure_at": null
+}

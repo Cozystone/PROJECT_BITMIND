@@ -2,8 +2,11 @@
 
 BITMIND-LIFE is a persistent-agent research prototype. It evaluates change over a continuous lifetime, not only correctness on resettable tasks.
 
-**Status:** first experiment implemented (approved scope: `docs/APPENDIX-FIRST-EXPERIMENT.md`);
-development phase complete; formal seeds run only from the frozen tag (`experiments/FREEZE.md`).
+**Status:** first experiment complete (tag `bitmind-life-first-v0.1`, seeds 101-110). Gate:
+**supported** (connections change through observation, the change persists and lowers later
+surprise relative to the birth network); hidden-plasticity benefit **not shown**; the control
+worlds show the same surprise reduction, so no learning of temporal structure is claimed. Report:
+`experiments/REPORT-first-experiment.md`.
 Random actions are the control condition of this round: nothing about action selection,
 self-maintenance or instinct is claimed.
 

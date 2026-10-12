@@ -1,0 +1,289 @@
+{
+  "seeds_requested": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110
+  ],
+  "seeds_valid": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110
+  ],
+  "seeds_invalid": [],
+  "unstable": false,
+  "p1": {
+    "name": "P1 change: D_hist(full) - D_hist(frozen)",
+    "per_seed": [
+      [
+        101,
+        0.2741010151156209
+      ],
+      [
+        102,
+        0.34100255289542725
+      ],
+      [
+        103,
+        0.25437113747865586
+      ],
+      [
+        104,
+        0.27071892212110954
+      ],
+      [
+        105,
+        0.2494549537022107
+      ],
+      [
+        106,
+        0.23854218458630116
+      ],
+      [
+        107,
+        0.24187099819407556
+      ],
+      [
+        108,
+        0.2822048170585033
+      ],
+      [
+        109,
+        0.27921603182633103
+      ],
+      [
+        110,
+        0.2685248234587195
+      ]
+    ],
+    "median": 0.2696218727899145,
+    "iqr": [
+      0.250683999646322,
+      0.2779372776486535
+    ],
+    "ci95_median": [
+      0.2494549537022107,
+      0.27921603182633103
+    ],
+    "n_positive": 10,
+    "n_at_least_min_effect": 10,
+    "n_seeds": 10,
+    "pass": true,
+    "rule": "median >= 0.05 bits and > 0 in >= 9 seeds"
+  },
+  "p2": {
+    "name": "P2 usefulness: S_frozen - S_full (block 0, mean over 5 checkpoints)",
+    "per_seed": [
+      [
+        101,
+        0.4868732435016563
+      ],
+      [
+        102,
+        0.7996312815276485
+      ],
+      [
+        103,
+        0.5986509600179102
+      ],
+      [
+        104,
+        0.6091919614611303
+      ],
+      [
+        105,
+        0.45499995519725767
+      ],
+      [
+        106,
+        0.9262763155891935
+      ],
+      [
+        107,
+        0.515170946401045
+      ],
+      [
+        108,
+        0.40917170853637064
+      ],
+      [
+        109,
+        0.638163405449621
+      ],
+      [
+        110,
+        0.8761863847426568
+      ]
+    ],
+    "median": 0.6039214607395202,
+    "iqr": [
+      0.49394766922650346,
+      0.7592643125081416
+    ],
+    "ci95_median": [
+      0.4868732435016563,
+      0.7996312815276485
+    ],
+    "n_positive": 10,
+    "n_at_least_min_effect": 10,
+    "n_seeds": 10,
+    "pass": true,
+    "rule": "median >= 0.1 bits and > 0 in >= 9 seeds"
+  },
+  "p3": {
+    "name": "P3 persistence: S_frozen - S_full(1e6) on E_2e5, unchanged sites",
+    "per_seed": [
+      [
+        101,
+        0.8545588992921442
+      ],
+      [
+        102,
+        1.191342996975573
+      ],
+      [
+        103,
+        0.9620540667453714
+      ],
+      [
+        104,
+        1.0746683858033181
+      ],
+      [
+        105,
+        0.6557729494103179
+      ],
+      [
+        106,
+        1.4942813350280304
+      ],
+      [
+        107,
+        0.8381710283103443
+      ],
+      [
+        108,
+        0.8366081931287266
+      ],
+      [
+        109,
+        0.9530632986549838
+      ],
+      [
+        110,
+        1.1537507492783354
+      ]
+    ],
+    "median": 0.9575586827001776,
+    "iqr": [
+      0.8422679960557943,
+      1.1339801584095812
+    ],
+    "ci95_median": [
+      0.8381710283103443,
+      1.1537507492783354
+    ],
+    "n_positive": 10,
+    "n_at_least_min_effect": 10,
+    "n_seeds": 10,
+    "pass": true,
+    "rule": ">= 0.05 bits in >= 8 seeds"
+  },
+  "hidden_plasticity": {
+    "name": "hidden plasticity: S_readout - S_full (P2 streams)",
+    "per_seed": [
+      [
+        101,
+        -0.03615322283704714
+      ],
+      [
+        102,
+        0.0403474281404228
+      ],
+      [
+        103,
+        -0.00519124494369505
+      ],
+      [
+        104,
+        -0.035194205647928634
+      ],
+      [
+        105,
+        -0.02735794666330449
+      ],
+      [
+        106,
+        0.009386403842011504
+      ],
+      [
+        107,
+        0.02682111031981549
+      ],
+      [
+        108,
+        -0.005174207846540213
+      ],
+      [
+        109,
+        0.023663736369287758
+      ],
+      [
+        110,
+        -0.03908587699917532
+      ]
+    ],
+    "median": -0.005182726395117632,
+    "iqr": [
+      -0.0332351409017726,
+      0.020094403237468694
+    ],
+    "ci95_median": [
+      -0.035194205647928634,
+      0.023663736369287758
+    ],
+    "n_positive": 4,
+    "n_at_least_min_effect": 0,
+    "n_seeds": 10,
+    "pass": false,
+    "rule": ">= 0.05 bits in >= 8 seeds"
+  },
+  "p3_insufficient_seeds": [],
+  "verdict": "supported",
+  "hidden_verdict": "not shown",
+  "side_reports": [
+    "D_hist readout: median 0.2081 (n 10)",
+    "S_here readout (P2 streams): median 2.0823 (n 10)",
+    "D_hist homeo: median 0.0003 (n 10)",
+    "S_here homeo (P2 streams): median 2.6612 (n 10)",
+    "D_hist freeze_at: median 0.0000 (n 10)",
+    "S_here freeze_at (P2 streams): median 2.1026 (n 10)",
+    "D_hist fb_wt: median 0.4139 (n 10)",
+    "S_here fb_wt (P2 streams): median 1.9416 (n 10)",
+    "D_hist ltc: median 0.3724 (n 10)",
+    "S_here ltc (P2 streams): median 2.0960 (n 10)",
+    "retention (S_frozen - S_full@1e6)/(S_frozen - S_full@2e5) on E_2e5 unchanged sites: median 1.0883 (n 10)",
+    "S_frozen - S_full on free (non-forced) block-0 events only: median -0.4833 (n 10)",
+    "marginal floor (P2 streams): median 1.9913",
+    "grammar-conditional reference (P2 streams): median 0.7321",
+    "structure-specific gain vs full_shuffled: (S_birth - S_full)_structured - (S_birth - S_full)_full_shuffled median -0.0035 IQR (-0.0227, 0.0058) (n 10)",
+    "structure-specific gain vs full_iid: (S_birth - S_full)_structured - (S_birth - S_full)_full_iid median -0.0175 IQR (-0.0428, -0.0092) (n 10)",
+    "structure-specific gain vs full_perm: (S_birth - S_full)_structured - (S_birth - S_full)_full_perm median -0.0141 IQR (-0.1149, 0.0395) (n 10)",
+    "full_shuffled: D_hist median 0.3106; S_birth - S_full median 0.6154",
+    "full_iid: D_hist median 0.2347; S_birth - S_full median 0.6326",
+    "full_perm: D_hist median 0.2658; S_birth - S_full median 0.6606"
+  ]
+}

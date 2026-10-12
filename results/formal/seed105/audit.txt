@@ -1,0 +1,3 @@
+audit results/formal/seed105/full: evaluations=604678 time_order_violations=0 obs_records=365813 obs_order_violations=0 numeric_records=0 -> OK
+audit results/formal/seed105/frozen: evaluations=604678 time_order_violations=0 obs_records=365813 obs_order_violations=0 numeric_records=0 -> OK
+audit results/formal/seed105/readout: evaluations=604678 time_order_violations=0 obs_records=365813 obs_order_violations=0 numeric_records=0 -> OK

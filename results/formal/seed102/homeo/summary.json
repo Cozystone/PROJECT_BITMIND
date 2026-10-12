@@ -1,0 +1,18 @@
+{
+  "arm": "homeo",
+  "ticks": 1000000,
+  "status": "ok",
+  "input_hash": 7529643574814242405,
+  "action_hash": 9847645755610321244,
+  "weights_hash": 16387594691125755327,
+  "state_hash": 1226668331725925641,
+  "elapsed_s": 3.0128383,
+  "ticks_per_s": 331912.9340595544,
+  "trace_records": 1092352,
+  "trace_bytes": 39383478,
+  "evaluations": 579386,
+  "maintenance_failures": 0,
+  "rescues": 0,
+  "structural_changes": 4,
+  "numerical_failure_at": null
+}

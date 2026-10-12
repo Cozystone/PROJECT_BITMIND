@@ -1,0 +1,18 @@
+{
+  "arm": "branch_Fresh",
+  "ticks": 580249,
+  "status": "ok",
+  "input_hash": 14981872046944103799,
+  "action_hash": 17686327170971765034,
+  "weights_hash": 2997755897363592740,
+  "state_hash": 5358152209264541760,
+  "elapsed_s": 0.29114,
+  "ticks_per_s": 171738.68242082847,
+  "trace_records": 78001,
+  "trace_bytes": 0,
+  "evaluations": 344324,
+  "maintenance_failures": 0,
+  "rescues": 0,
+  "structural_changes": 0,
+  "numerical_failure_at": null
+}

@@ -1,0 +1,18 @@
+{
+  "arm": "branch_Frozen",
+  "ticks": 237626,
+  "status": "ok",
+  "input_hash": 6667910418507453385,
+  "action_hash": 4703336001536613912,
+  "weights_hash": 8448372325052633657,
+  "state_hash": 5944853204130273736,
+  "elapsed_s": 0.1468599,
+  "ticks_per_s": 340460.5341553413,
+  "trace_records": 58115,
+  "trace_bytes": 0,
+  "evaluations": 136933,
+  "maintenance_failures": 0,
+  "rescues": 0,
+  "structural_changes": 0,
+  "numerical_failure_at": null
+}

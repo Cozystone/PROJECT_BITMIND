@@ -1,0 +1,39 @@
+P1 change: D_hist(full) - D_hist(frozen)
+   rule: median >= 0.05 bits and > 0 in >= 9 seeds
+   per seed: 101:0.2741 102:0.3410 103:0.2544 104:0.2707 105:0.2495 106:0.2385 107:0.2419 108:0.2822 109:0.2792 110:0.2685
+   median=0.2696 IQR=(0.2507, 0.2779) CI95(median)=(0.2495, 0.2792) positive=10/10 >=min_effect=10/10 -> PASS
+P2 usefulness: S_frozen - S_full (block 0, mean over 5 checkpoints)
+   rule: median >= 0.1 bits and > 0 in >= 9 seeds
+   per seed: 101:0.4869 102:0.7996 103:0.5987 104:0.6092 105:0.4550 106:0.9263 107:0.5152 108:0.4092 109:0.6382 110:0.8762
+   median=0.6039 IQR=(0.4939, 0.7593) CI95(median)=(0.4869, 0.7996) positive=10/10 >=min_effect=10/10 -> PASS
+P3 persistence: S_frozen - S_full(1e6) on E_2e5, unchanged sites
+   rule: >= 0.05 bits in >= 8 seeds
+   per seed: 101:0.8546 102:1.1913 103:0.9621 104:1.0747 105:0.6558 106:1.4943 107:0.8382 108:0.8366 109:0.9531 110:1.1538
+   median=0.9576 IQR=(0.8423, 1.1340) CI95(median)=(0.8382, 1.1538) positive=10/10 >=min_effect=10/10 -> PASS
+hidden plasticity: S_readout - S_full (P2 streams)
+   rule: >= 0.05 bits in >= 8 seeds
+   per seed: 101:-0.0362 102:0.0403 103:-0.0052 104:-0.0352 105:-0.0274 106:0.0094 107:0.0268 108:-0.0052 109:0.0237 110:-0.0391
+   median=-0.0052 IQR=(-0.0332, 0.0201) CI95(median)=(-0.0352, 0.0237) positive=4/10 >=min_effect=0/10 -> FAIL
+valid seeds [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]; invalid []; P3 insufficient []
+side: D_hist readout: median 0.2081 (n 10)
+side: S_here readout (P2 streams): median 2.0823 (n 10)
+side: D_hist homeo: median 0.0003 (n 10)
+side: S_here homeo (P2 streams): median 2.6612 (n 10)
+side: D_hist freeze_at: median 0.0000 (n 10)
+side: S_here freeze_at (P2 streams): median 2.1026 (n 10)
+side: D_hist fb_wt: median 0.4139 (n 10)
+side: S_here fb_wt (P2 streams): median 1.9416 (n 10)
+side: D_hist ltc: median 0.3724 (n 10)
+side: S_here ltc (P2 streams): median 2.0960 (n 10)
+side: retention (S_frozen - S_full@1e6)/(S_frozen - S_full@2e5) on E_2e5 unchanged sites: median 1.0883 (n 10)
+side: S_frozen - S_full on free (non-forced) block-0 events only: median -0.4833 (n 10)
+side: marginal floor (P2 streams): median 1.9913
+side: grammar-conditional reference (P2 streams): median 0.7321
+side: structure-specific gain vs full_shuffled: (S_birth - S_full)_structured - (S_birth - S_full)_full_shuffled median -0.0035 IQR (-0.0227, 0.0058) (n 10)
+side: structure-specific gain vs full_iid: (S_birth - S_full)_structured - (S_birth - S_full)_full_iid median -0.0175 IQR (-0.0428, -0.0092) (n 10)
+side: structure-specific gain vs full_perm: (S_birth - S_full)_structured - (S_birth - S_full)_full_perm median -0.0141 IQR (-0.1149, 0.0395) (n 10)
+side: full_shuffled: D_hist median 0.3106; S_birth - S_full median 0.6154
+side: full_iid: D_hist median 0.2347; S_birth - S_full median 0.6326
+side: full_perm: D_hist median 0.2658; S_birth - S_full median 0.6606
+VERDICT: supported   hidden plasticity benefit: not shown
+written results/formal\gate.json

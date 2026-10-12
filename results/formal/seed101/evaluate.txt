@@ -1,0 +1,26 @@
+== seed 101 streams_identical=true ==
+P1 D_hist(2e5,1e6) [558 events]: fb_wt=0.4733  freeze_at=0.0000  frozen=0.0000  full=0.2741  homeo=0.0004  ltc=0.3495  readout=0.1797
+P2 S_here on E_t, t=[200000, 400000, 600000, 800000, 1000000] (n [572, 593, 524, 560, 539])
+   floor(marginal)=["2.0108", "1.9573", "2.0794", "2.0138", "2.0365"]  generative_ref=["0.8569", "0.7233", "0.8992", "0.7243", "0.6609"]  generative_ref(free)=["2.3194", "2.0068", "1.7329", "1.7271", "1.6446"]
+   fb_wt      ["2.0670", "1.8209", "2.1965", "1.8575", "1.9041"]  mean=1.9692   free-only mean=3.3173 (n [150, 142, 164, 153, 148])
+   freeze_at  ["2.1590", "2.0560", "2.1505", "2.1702", "2.1489"]  mean=2.1369   free-only mean=3.1609 (n [150, 142, 164, 153, 148])
+   frozen     ["2.6563", "2.5737", "2.5805", "2.6769", "2.6426"]  mean=2.6260   free-only mean=2.6737 (n [150, 142, 164, 153, 148])
+   full       ["2.1584", "2.0016", "2.2962", "2.0826", "2.1570"]  mean=2.1391   free-only mean=3.1632 (n [150, 142, 164, 153, 148])
+   homeo      ["2.5908", "2.5480", "2.5512", "2.6400", "2.6168"]  mean=2.5894   free-only mean=2.6742 (n [150, 142, 164, 153, 148])
+   ltc        ["2.2042", "1.9863", "2.2308", "1.9675", "2.0877"]  mean=2.0953   free-only mean=3.2166 (n [150, 142, 164, 153, 148])
+   readout    ["2.1157", "2.0134", "2.2179", "2.0413", "2.1266"]  mean=2.1030   free-only mean=3.1969 (n [150, 142, 164, 153, 148])
+P3 S_here(1e6) on E_2e5, structure-unchanged events (forced cycles + free at unchanged sites [5, 7]) (n 464, sufficient=true): fb_wt=1.5362  freeze_at=1.9317  frozen=2.6652  full=1.8107  homeo=2.5825  ltc=1.6322  readout=1.8320
+   free at unchanged sites only (n 42): fb_wt=2.9519  freeze_at=3.5594  frozen=2.8361  full=3.1226  homeo=2.7690  ltc=2.4720  readout=3.0319
+   forced cycles only (n 422): fb_wt=1.3953  freeze_at=1.7697  frozen=2.6482  full=1.6801  homeo=2.5639  ltc=1.5486  readout=1.7125
+   same copies at 2e5: fb_wt=1.7962  freeze_at=1.9317  frozen=2.6652  full=1.9310  homeo=2.5823  ltc=1.9716  readout=1.8871
+S1 order fb_wt      D_order=1.3145 KL_truth(ABC)=2.6208 KL_truth(ACB)=2.3832
+S1 order freeze_at  D_order=0.0480 KL_truth(ABC)=1.7312 KL_truth(ACB)=1.5981
+S1 order frozen     D_order=0.0050 KL_truth(ABC)=1.1905 KL_truth(ACB)=1.2330
+S1 order full       D_order=0.1648 KL_truth(ABC)=2.0155 KL_truth(ACB)=1.7913
+S1 order homeo      D_order=0.0028 KL_truth(ABC)=1.2109 KL_truth(ACB)=1.2258
+S1 order ltc        D_order=0.7182 KL_truth(ABC)=2.2533 KL_truth(ACB)=1.8932
+S1 order readout    D_order=0.0961 KL_truth(ABC)=1.8585 KL_truth(ACB)=1.7297
+variant full_iid       D_hist=0.2804 S_full=["2.1039", "2.0185", "2.3014", "2.0844", "2.2244"] S_birth=["2.6368", "2.5629", "2.5328", "2.6640", "2.6108"]
+variant full_perm      D_hist=0.2530 S_full=["2.1564", "2.0324", "2.1617", "2.2440", "2.1781"] S_birth=["2.6429", "2.5810", "2.5782", "2.6357", "2.6552"]
+variant full_shuffled  D_hist=0.3505 S_full=["2.1462", "2.0008", "2.3999", "1.9874", "2.1097"] S_birth=["2.6325", "2.5815", "2.5803", "2.6528", "2.6202"]
+written results/formal/seed101\evaluate.json

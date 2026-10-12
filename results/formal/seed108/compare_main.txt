@@ -1,0 +1,8 @@
+results/formal/seed108/full              arm=full       ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+results/formal/seed108/frozen            arm=frozen     ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+results/formal/seed108/readout           arm=readout    ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+results/formal/seed108/homeo             arm=homeo      ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+results/formal/seed108/freeze_at         arm=freeze_at  ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+results/formal/seed108/fb_wt             arm=fb_wt      ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+results/formal/seed108/ltc               arm=ltc        ticks=1000000  input_hash=4a3c13284f62562f action_hash=e49b4e020d957b48 status=ok
+compare: IDENTICAL streams

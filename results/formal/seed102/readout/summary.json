@@ -1,0 +1,18 @@
+{
+  "arm": "readout",
+  "ticks": 1000000,
+  "status": "ok",
+  "input_hash": 7529643574814242405,
+  "action_hash": 9847645755610321244,
+  "weights_hash": 3193974193466432348,
+  "state_hash": 1226668331725925641,
+  "elapsed_s": 3.2492012,
+  "ticks_per_s": 307767.95232009643,
+  "trace_records": 1440104,
+  "trace_bytes": 51902594,
+  "evaluations": 579386,
+  "maintenance_failures": 0,
+  "rescues": 0,
+  "structural_changes": 4,
+  "numerical_failure_at": null
+}
